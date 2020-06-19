@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Task;
 use Illuminate\Http\Request;
 
 class TasksController extends Controller
@@ -13,7 +14,11 @@ class TasksController extends Controller
      */
     public function index()
     {
-        //
+        $tasks = Task::all();
+
+        return view("tasks.index", [
+            "tasks" => $tasks,
+        ]);
     }
 
     /**
@@ -23,7 +28,11 @@ class TasksController extends Controller
      */
     public function create()
     {
-        //
+        $task = new Task;
+
+        return view("tasks.create", [
+            "task" => $task,
+        ]);
     }
 
     /**
@@ -34,7 +43,11 @@ class TasksController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $task = new Task;
+        $task->content = $request->content;
+        $task->save();
+
+        return redirect("/");
     }
 
     /**
@@ -45,7 +58,11 @@ class TasksController extends Controller
      */
     public function show($id)
     {
-        //
+        $task = Task::find($id);
+
+        return view("tasks.show", [
+            "task" => $task,
+        ]);
     }
 
     /**
@@ -56,7 +73,11 @@ class TasksController extends Controller
      */
     public function edit($id)
     {
-        //
+        $task = Task::find($id);
+
+        return view("tasks.edit", [
+            "task" => $task,
+        ]);
     }
 
     /**
@@ -68,7 +89,11 @@ class TasksController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+        $task = Task::find($id);
+        $task->content = $request->content;
+        $task->save();
+
+        return redirect("/");
     }
 
     /**
@@ -79,6 +104,9 @@ class TasksController extends Controller
      */
     public function destroy($id)
     {
-        //
+        $task = Task::find($id);
+        $task->delete();
+
+        return redirect("/");
     }
 }
