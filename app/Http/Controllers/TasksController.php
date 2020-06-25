@@ -14,11 +14,17 @@ class TasksController extends Controller
      */
     public function index()
     {
-        $tasks = Task::all();
+        $data = [];
+        if(\Auth::check()) {
+            $user = \Auth::user();
+            $tasks = $user->tasks()->orderBy('created_at', 'desc')->paginate(10);
 
-        return view("tasks.index", [
-            "tasks" => $tasks,
-        ]);
+            $data = [
+                'user' => $user,
+                'tasks' => $tasks,
+            ];
+        }
+        return view('tasks.index', $data);
     }
 
     /**
@@ -28,11 +34,15 @@ class TasksController extends Controller
      */
     public function create()
     {
-        $task = new Task;
+        if(\Auth::check()) {
+            $task = new Task;
 
-        return view("tasks.create", [
-            "task" => $task,
-        ]);
+            return view("tasks.create", [
+                "task" => $task,
+            ]);
+        } else {
+            return redirect('/');
+        }
     }
 
     /**
@@ -43,15 +53,23 @@ class TasksController extends Controller
      */
     public function store(Request $request)
     {
-        $this->validate($request, [
-            "status" => "required|max:10"
-        ]);
+        if (\Auth::check()) {
+            $this->validate($request, [
+                'status' => 'required|max:10',
+                'content' => 'required|max:191',
+            ]);
 
-        $task = new Task;
-        $task->status = $request->status;
-        $task->content = $request->content;
-        $task->save();
+            $request->user()->tasks()->create([
+                'status' => $request->status,
+                'content' => $request->content,
+            ]);
 
+            // 下記の記述でも反映される。
+            // $task = new Task;
+            // $task->content = $request->content;
+            // $task->user_id = \Auth::id();
+            // task->save();
+        }
         return redirect("/");
     }
 
@@ -63,11 +81,14 @@ class TasksController extends Controller
      */
     public function show($id)
     {
-        $task = Task::find($id);
+        if (\Auth::check() && \Auth::id() === \Auth::user()) {
+            $task = Task::find($id);
 
-        return view("tasks.show", [
-            "task" => $task,
-        ]);
+            return view('tasks.show', [
+                'task' => $task,
+            ]);
+        }
+        return redirect('/');
     }
 
     /**
@@ -78,11 +99,14 @@ class TasksController extends Controller
      */
     public function edit($id)
     {
-        $task = Task::find($id);
+        if (\Auth::check() && \Auth::id() === \Auth::user()) {
+            $task = Task::find($id);
 
-        return view("tasks.edit", [
-            "task" => $task,
-        ]);
+            return view('tasks.edit', [
+                'task' => $task,
+            ]);
+        }
+        return redirect('/');
     }
 
     /**
@@ -94,15 +118,17 @@ class TasksController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $this->validate($request, [
-            "status" => "required|max:10"
-        ]);
+        if (\Auth::check() && \Auth::id() === \Auth::user()) {
+            $this->validate($request, [
+                'status' => 'required|max:191',
+                'content' => 'required|max:191',
+            ]);
 
-        $task = Task::find($id);
-        $task->status = $request->status;
-        $task->content = $request->content;
-        $task->save();
-
+            $task = Task::find($id);
+            $task->status = $request->status;
+            $task->content = $request->content;
+            $task->save();
+        }
         return redirect("/");
     }
 
@@ -114,9 +140,10 @@ class TasksController extends Controller
      */
     public function destroy($id)
     {
-        $task = Task::find($id);
-        $task->delete();
-
+        if (\Auth::check() && \Auth::id() === \Auth::user()) {
+            $task = Task::find($id);
+            $task->delete();
+        }
         return redirect("/");
     }
 }
