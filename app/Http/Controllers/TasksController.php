@@ -81,14 +81,14 @@ class TasksController extends Controller
      */
     public function show($id)
     {
-        if (\Auth::check() && \Auth::id() === \Auth::user()) {
-            $task = Task::find($id);
-
+        $task = Task::find($id);
+        // if (\Auth::check() && \Auth::id() === $task->user_id) {
             return view('tasks.show', [
                 'task' => $task,
             ]);
-        }
-        return redirect('/');
+        // } else {
+        //     return redirect('/');
+        // }
     }
 
     /**
@@ -99,14 +99,14 @@ class TasksController extends Controller
      */
     public function edit($id)
     {
-        if (\Auth::check() && \Auth::id() === \Auth::user()) {
-            $task = Task::find($id);
-
+        $task = Task::find($id);
+        if (\Auth::check() && \Auth::id() === $task->user_id) {
             return view('tasks.edit', [
                 'task' => $task,
             ]);
+        } else {
+            return redirect('/');
         }
-        return redirect('/');
     }
 
     /**
@@ -118,18 +118,18 @@ class TasksController extends Controller
      */
     public function update(Request $request, $id)
     {
-        if (\Auth::check() && \Auth::id() === \Auth::user()) {
-            $this->validate($request, [
-                'status' => 'required|max:191',
-                'content' => 'required|max:191',
-            ]);
+        $this->validate($request, [
+            'status' => 'required|max:191',
+            'content' => 'required|max:191',
+        ]);
 
-            $task = Task::find($id);
+        $task = Task::find($id);
+        if (\Auth::check() && \Auth::id() === $task->user_id) {
             $task->status = $request->status;
             $task->content = $request->content;
             $task->save();
         }
-        return redirect("/");
+            return redirect("/");
     }
 
     /**
@@ -140,10 +140,10 @@ class TasksController extends Controller
      */
     public function destroy($id)
     {
-        if (\Auth::check() && \Auth::id() === \Auth::user()) {
-            $task = Task::find($id);
+        $task = Task::find($id);
+        if (\Auth::check() && \Auth::id() === $task->user_id) {
             $task->delete();
         }
-        return redirect("/");
+            return redirect("/");
     }
 }
